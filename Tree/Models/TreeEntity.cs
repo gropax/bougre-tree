@@ -34,7 +34,7 @@ namespace Tree.Models
             UpdatedAt = updatedAt;
         }
 
-        public static TreeEntity FromTree(TreeDto tree)
+        public static TreeEntity FromDto(TreeDto tree)
         {
             return new TreeEntity(tree.Guid, tree.Name, tree.Description, tree.CreatedAt, tree.UpdatedAt);
         }
@@ -51,28 +51,34 @@ namespace Tree.Models
         [BsonRepresentation(BsonType.String)]
         public Guid Guid { get; set; }
 
-        public Guid ParentId { get; set; }
-        public string Label { get; set; }
-        public int Position { get; set; }
+        [BsonRepresentation(BsonType.String)]
+        public Guid TreeGuid { get; set; }
+        [BsonRepresentation(BsonType.String)]
+        public Guid? ParentGuid { get; set; }
+
+        public string Name { get; set; }
+        public string Description { get; set; }
+        //public int Position { get; set; }
 
         public NodeEntity() { }
 
-        public NodeEntity(Guid guid, Guid parentId, string label, int position)
+        public NodeEntity(Guid guid, Guid treeGuid, Guid? parentGuid, string name, string description)
         {
             Guid = guid;
-            ParentId = parentId;
-            Label = label;
-            Position = position;
+            TreeGuid = treeGuid;
+            ParentGuid = parentGuid;
+            Name = name;
+            Description = description;
         }
 
-        public static NodeEntity FromNode(NodeDto node)
+        public static NodeEntity FromDto(NodeDto node)
         {
-            return new NodeEntity(node.Guid, node.ParentId, node.Label, node.Position);
+            return new NodeEntity(node.Guid, node.TreeGuid, node.ParentGuid, node.Name, node.Description);
         }
 
-        public NodeDto ToNode()
+        public NodeDto ToDto()
         {
-            return new NodeDto(Guid, ParentId, Label, Position);
+            return new NodeDto(Guid, TreeGuid, ParentGuid, Name, Description);
         }
     }
 }

@@ -35,18 +35,21 @@ namespace Tree.Contracts
         [DataMember]
         public Guid Guid { get; }
         [DataMember]
-        public Guid ParentId { get; }
+        public Guid TreeGuid { get; }
         [DataMember]
-        public string Label { get; }
+        public Guid? ParentGuid { get; }
         [DataMember]
-        public int Position { get; }
+        public string Name { get; }
+        [DataMember]
+        public string Description { get; }
 
-        public NodeDto(Guid id, Guid parentId, string label, int position)
+        public NodeDto(Guid guid, Guid treeGuid, Guid? parentGuid, string name, string description)
         {
-            Guid = id;
-            ParentId = parentId;
-            Label = label;
-            Position = position;
+            Guid = guid;
+            TreeGuid = treeGuid;
+            ParentGuid = parentGuid;
+            Name = name;
+            Description = description;
         }
     }
 
@@ -57,5 +60,32 @@ namespace Tree.Contracts
         public string Name { get; set; }
         [DataMember]
         public string Description { get; set; }
+
+        public bool IsEmpty => Name == null && Description == null;
+        public bool IsValid => Name != null && Description != null;
+    }
+
+    [DataContract(Namespace = "tree")]
+    public class CreateNodeDto
+    {
+        [DataMember]
+        public Guid? ParentGuid { get; set; }
+        [DataMember]
+        public string Name { get; set; }
+        [DataMember]
+        public string Description { get; set; }
+
+        public bool IsValid => Name != null && Description != null;
+    }
+
+    [DataContract(Namespace = "tree")]
+    public class UpdateNodeDto
+    {
+        [DataMember]
+        public string Name { get; set; }
+        [DataMember]
+        public string Description { get; set; }
+
+        public bool IsEmpty => Name == null && Description == null;
     }
 }
