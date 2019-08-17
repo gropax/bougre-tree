@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Tree.Contracts;
+using Tree.Models;
 
 namespace Tree.Controllers
 {
@@ -11,36 +13,55 @@ namespace Tree.Controllers
     [ApiController]
     public class TreesController : ControllerBase
     {
-        // GET: api/Trees
+        private TreeStorage _treeStorage;
+
+        public TreesController(TreeStorage treeStorage)
+        {
+            _treeStorage = treeStorage;
+        }
+
         [HttpGet]
-        public IEnumerable<string> Get()
+        public ActionResult  Get()
         {
-            return new string[] { "value1", "value2" };
+            var trees = _treeStorage.GetAllTrees();
+            return Ok(trees);
         }
 
-        // GET: api/Trees/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        [HttpGet("{guid}", Name = "Get")]
+        public ActionResult Get(Guid guid)
         {
-            return "value";
+            var tree = _treeStorage.GetTree(guid);
+            if (tree == null)
+                return NotFound();
+            else
+                return Ok(tree);
         }
 
-        // POST: api/Trees
         [HttpPost]
-        public void Post([FromBody] string value)
+        public ActionResult Post([FromBody] UpsertTreeDto upsertTree)
         {
+            var tree = _treeStorage.CreateTree(upsertTree);
+            return Ok(tree);
         }
 
-        // PUT: api/Trees/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut("{guid}")]
+        public ActionResult Put(Guid guid, [FromBody] UpsertTreeDto upsertTree)
         {
+            var tree = _treeStorage.UpdateTree(guid, upsertTree);
+            if (tree == null)
+                return NotFound();
+            else
+                return Ok(tree);
         }
 
-        // DELETE: api/Trees/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("{guid}")]
+        public ActionResult Delete(Guid guid)
         {
+            var tree = _treeStorage.DeleteTree(guid);
+            if (tree == null)
+                return NotFound();
+            else
+                return Ok(tree);
         }
     }
 }
