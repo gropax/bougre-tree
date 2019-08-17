@@ -30,11 +30,14 @@ namespace Tree.Controllers
         [HttpGet("{guid}", Name = "Get")]
         public ActionResult Get(Guid guid)
         {
-            var tree = _treeStorage.GetTree(guid);
-            if (tree == null)
-                return NotFound();
-            else
-                return Ok(tree);
+            try
+            {
+                return Ok(_treeStorage.GetTree(guid));
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e);
+            }
         }
 
         [HttpPost]
@@ -52,43 +55,54 @@ namespace Tree.Controllers
         {
             if (upsertTree.IsEmpty)
                 return BadRequest();
-
-            var tree = _treeStorage.UpdateTree(guid, upsertTree);
-            if (tree == null)
-                return NotFound();
-            else
-                return Ok(tree);
+            try
+            {
+                return Ok(_treeStorage.UpdateTree(guid, upsertTree));
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e);
+            }
         }
 
         [HttpDelete("{guid}")]
         public ActionResult Delete(Guid guid)
         {
-            var tree = _treeStorage.DeleteTree(guid);
-            if (tree == null)
-                return NotFound();
-            else
-                return Ok(tree);
+            try
+            {
+                return Ok(_treeStorage.DeleteTree(guid));
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e);
+            }
         }
 
 
         [HttpGet("{treeGuid}/Nodes")]
         public ActionResult GetNodes(Guid treeGuid)
         {
-            var nodes = _treeStorage.GetAllNodes(treeGuid);
-            if (nodes == null)
-                return NotFound();
-            else
-                return Ok(nodes);
+            try
+            {
+                return Ok(_treeStorage.GetAllNodes(treeGuid));
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e);
+            }
         }
 
         [HttpGet("Nodes/{guid}", Name = "GetNode")]
         public ActionResult GetNode(Guid guid)
         {
-            var node = _treeStorage.GetNode(guid);
-            if (node == null)
-                return NotFound();
-            else
-                return Ok(node);
+            try
+            {
+                return Ok(_treeStorage.GetNode(guid));
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e);
+            }
         }
 
         [HttpPost("{treeGuid}/Nodes")]
@@ -96,12 +110,14 @@ namespace Tree.Controllers
         {
             if (!createNode.IsValid)
                 return BadRequest();
-
-            var node = _treeStorage.CreateNode(treeGuid, createNode);
-            if (node == null)
-                return NotFound();
-            else
-                return Ok(node);
+            try
+            {
+                return Ok(_treeStorage.CreateNode(treeGuid, createNode));
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e);
+            }
         }
 
         [HttpPut("Nodes/{guid}")]
@@ -109,22 +125,27 @@ namespace Tree.Controllers
         {
             if (updateNode.IsEmpty)
                 return BadRequest();
-
-            var node = _treeStorage.UpdateNode(guid, updateNode);
-            if (node == null)
-                return NotFound();
-            else
-                return Ok(node);
+            try
+            {
+                return Ok(_treeStorage.UpdateNode(guid, updateNode));
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e);
+            }
         }
 
-        //[HttpDelete("Nodes/{guid}")]
-        //public ActionResult DeleteNode(Guid guid)
+        //[HttpDelete("{treeGuid}/Nodes")]
+        //public ActionResult DeleteNodes(Guid treeGuid, [FromBody] DeleteNodesDto deleteNodes)
         //{
-        //    var node = _treeStorage.DeleteNode(guid);
-        //    if (node == null)
-        //        return NotFound();
-        //    else
-        //        return Ok(node);
+        //    try
+        //    {
+        //        return Ok(_treeStorage.DeleteNodes(treeGuid, deleteNodes));
+        //    }
+        //    catch (NodeNotFoundException e)
+        //    {
+        //        return NotFound(e);
+        //    }
         //}
     }
 }

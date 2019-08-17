@@ -88,4 +88,15 @@ namespace Tree.Contracts
 
         public bool IsEmpty => Name == null && Description == null;
     }
+
+    [DataContract(Namespace = "tree")]
+    public class DeleteNodesDto
+    {
+        [DataMember]
+        public Guid[] NodeGuids { get; set; }
+        [DataMember]
+        public bool Recursively { get; set; }
+
+        public bool IsValid => NodeGuids.Length > 0;
+    }
 }

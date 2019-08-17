@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace Tree.Models
 {
@@ -32,7 +33,8 @@ namespace Tree.Models
 
         public TreeDto GetTree(Guid guid)
         {
-            return _treesCollections.Find(t => t.Guid == guid).FirstOrDefault()?.ToDto();
+            var entity = _treesCollections.Find(t => t.Guid == guid).FirstOrDefault();
+            return entity?.ToDto() ?? throw new TreeNotFoundException(guid);
         }
 
         public TreeDto CreateTree(UpsertTreeDto tree)
@@ -45,6 +47,7 @@ namespace Tree.Models
                 updatedAt: DateTime.Now);
 
             _treesCollections.InsertOne(entity);
+
             return entity.ToDto();
         }
 
@@ -61,42 +64,41 @@ namespace Tree.Models
 
             updates.Add(updateBuilder.Set(t => t.UpdatedAt, DateTime.Now));
 
-            var tree = _treesCollections.FindOneAndUpdate<TreeEntity>(
+            var entity = _treesCollections.FindOneAndUpdate<TreeEntity>(
                 t => t.Guid == guid,
                 updateBuilder.Combine(updates),
                 new FindOneAndUpdateOptions<TreeEntity> { ReturnDocument = ReturnDocument.After });
 
-            return tree?.ToDto();
+            return entity?.ToDto() ?? throw new TreeNotFoundException(guid);
         }
 
         public TreeDto DeleteTree(Guid guid)
         {
-            return _treesCollections.FindOneAndDelete(t => t.Guid == guid)?.ToDto();
+            var entity = _treesCollections.FindOneAndDelete(t => t.Guid == guid);
+            return entity?.ToDto() ?? throw new TreeNotFoundException(guid);
         }
 
 
         public NodeDto[] GetAllNodes(Guid treeGuid)
         {
+            var tree = GetTree(treeGuid);  // throw if Tree doesn't exist
             return _nodesCollections.Find(n => n.TreeGuid == treeGuid).ToEnumerable()
                 .Select(e => e.ToDto()).ToArray();
         }
 
         public NodeDto GetNode(Guid guid)
         {
-            return _nodesCollections.Find(t => t.Guid == guid).FirstOrDefault()?.ToDto();
+            var entity = _nodesCollections.Find(t => t.Guid == guid).FirstOrDefault();
+            return entity?.ToDto() ?? throw new NodeNotFoundException(guid);
         }
 
         public NodeDto CreateNode(Guid treeGuid, CreateNodeDto createNode)
         {
-            // Check if tree exists
-            var tree = GetTree(treeGuid);
-            if (tree == null)
-                return null;
+            GetTree(treeGuid);  // throw if Tree doesn't exist
 
-            // Check if parent node exists (if given)
             var parentGuid = createNode.ParentGuid;
-            if (parentGuid.HasValue && GetNode(parentGuid.Value) == null)
-                return null;
+            if (parentGuid.HasValue)
+                GetNode(parentGuid.Value);  // throw if Node doesn't exist
 
             var entity = new NodeEntity(
                 guid: Guid.NewGuid(),
@@ -106,6 +108,7 @@ namespace Tree.Models
                 description: createNode.Description);
 
             _nodesCollections.InsertOne(entity);
+
             return entity.ToDto();
         }
 
@@ -120,17 +123,39 @@ namespace Tree.Models
             if (updateNode.Description != null)
                 updates.Add(updateBuilder.Set(n => n.Description, updateNode.Description));
 
-            var tree = _nodesCollections.FindOneAndUpdate<NodeEntity>(
+            var entity = _nodesCollections.FindOneAndUpdate<NodeEntity>(
                 t => t.Guid == guid,
                 updateBuilder.Combine(updates),
                 new FindOneAndUpdateOptions<NodeEntity> { ReturnDocument = ReturnDocument.After });
 
-            return tree?.ToDto();
+            return entity?.ToDto() ?? throw new NodeNotFoundException(guid);
         }
 
-        public NodeDto DeleteNode(Guid guid)
-        {
-            return _nodesCollections.FindOneAndDelete(t => t.Guid == guid)?.ToDto();
-        }
+
+        //public NodeDto DeleteNodes(Guid treeGuid, DeleteNodesDto deleteNodes)
+        //{
+        //    var nodes = GetAllNodes(treeGuid);
+
+        //    return _nodesCollections.FindOneAndDelete(t => t.Guid == guid)?.ToDto();
+        //}
+    }
+
+    internal class NotFoundException : Exception
+    {
+        public NotFoundException(string message) : base(message) { }
+    }
+
+    [Serializable]
+    internal class TreeNotFoundException : NotFoundException
+    {
+        public TreeNotFoundException(Guid treeGuid)
+            : base($"Tree does not exist [{treeGuid}]") { }
+    }
+
+    [Serializable]
+    internal class NodeNotFoundException : NotFoundException
+    {
+        public NodeNotFoundException(Guid nodeGuid)
+            : base($"Node does not exist [{nodeGuid}]") { }
     }
 }
