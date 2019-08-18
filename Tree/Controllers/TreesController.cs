@@ -153,5 +153,26 @@ namespace Tree.Controllers
                 return NotFound(e);
             }
         }
+
+        [HttpPost("{treeGuid}/Nodes/SetParent")]
+        public ActionResult SetParentNode(Guid treeGuid, [FromBody] SetParentNodeDto setParentNode)
+        {
+            if (!setParentNode.IsValid)
+                return BadRequest("Invalid parameters");
+            try
+            {
+                var cmd = new SetParentNodeCommand(_treeStorage);
+                long updated = cmd.Execute(treeGuid, setParentNode);
+                return Ok(new { Updated = updated });
+            }
+            catch (BadRequestException e)
+            {
+                return BadRequest(e);
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e);
+            }
+        }
     }
 }

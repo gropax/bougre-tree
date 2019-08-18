@@ -99,4 +99,15 @@ namespace Tree.Contracts
 
         public bool IsValid => NodeGuids.Length > 0;
     }
+
+    [DataContract(Namespace = "tree")]
+    public class SetParentNodeDto
+    {
+        [DataMember]
+        public Guid ParentGuid { get; set; }
+        [DataMember]
+        public Guid[] NodeGuids { get; set; }
+
+        public bool IsValid => NodeGuids.Length > 0;
+    }
 }

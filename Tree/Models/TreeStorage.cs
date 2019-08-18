@@ -138,6 +138,18 @@ namespace Tree.Models
 
             return deleted.DeletedCount;
         }
+
+        public long SetParentNode(NodeDto parent, IEnumerable<NodeDto> nodes)
+        {
+            var updateBuilder = Builders<NodeEntity>.Update;
+            var guids = nodes.Select(n => n.Guid).ToArray();
+
+            var entity = _nodesCollections.UpdateMany(
+                t => guids.Contains(t.Guid),
+                updateBuilder.Set(n => n.ParentGuid, parent.Guid));
+
+            return entity.ModifiedCount;
+        }
     }
 
     [Serializable]
