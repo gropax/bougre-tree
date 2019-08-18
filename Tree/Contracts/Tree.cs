@@ -95,7 +95,7 @@ namespace Tree.Contracts
         [DataMember]
         public Guid[] NodeGuids { get; set; }
         [DataMember]
-        public bool Recursively { get; set; }
+        public bool Recursive { get; set; }
 
         public bool IsValid => NodeGuids.Length > 0;
     }

@@ -131,15 +131,16 @@ namespace Tree.Models
             return entity?.ToDto() ?? throw new NodeNotFoundException(guid);
         }
 
+        public long DeleteNodes(NodeDto[] nodes)
+        {
+            var allGuids = nodes.Select(n => n.Guid).ToArray();
+            var deleted = _nodesCollections.DeleteMany(n => allGuids.Contains(n.Guid));
 
-        //public NodeDto DeleteNodes(Guid treeGuid, DeleteNodesDto deleteNodes)
-        //{
-        //    var nodes = GetAllNodes(treeGuid);
-
-        //    return _nodesCollections.FindOneAndDelete(t => t.Guid == guid)?.ToDto();
-        //}
+            return deleted.DeletedCount;
+        }
     }
 
+    [Serializable]
     internal class NotFoundException : Exception
     {
         public NotFoundException(string message) : base(message) { }
@@ -157,5 +158,11 @@ namespace Tree.Models
     {
         public NodeNotFoundException(Guid nodeGuid)
             : base($"Node does not exist [{nodeGuid}]") { }
+    }
+
+    [Serializable]
+    internal class BadRequestException : Exception
+    {
+        public BadRequestException(string message) : base(message) { }
     }
 }

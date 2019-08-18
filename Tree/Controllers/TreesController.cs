@@ -135,17 +135,23 @@ namespace Tree.Controllers
             }
         }
 
-        //[HttpDelete("{treeGuid}/Nodes")]
-        //public ActionResult DeleteNodes(Guid treeGuid, [FromBody] DeleteNodesDto deleteNodes)
-        //{
-        //    try
-        //    {
-        //        return Ok(_treeStorage.DeleteNodes(treeGuid, deleteNodes));
-        //    }
-        //    catch (NodeNotFoundException e)
-        //    {
-        //        return NotFound(e);
-        //    }
-        //}
+        [HttpDelete("{treeGuid}/Nodes")]
+        public ActionResult DeleteNodes(Guid treeGuid, [FromBody] DeleteNodesDto deleteNodes)
+        {
+            try
+            {
+                var cmd = new DeleteNodesCommand(_treeStorage);
+                long deleted = cmd.Execute(treeGuid, deleteNodes);
+                return Ok(new { Deleted = deleted });
+            }
+            catch (BadRequestException e)
+            {
+                return BadRequest(e);
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e);
+            }
+        }
     }
 }
