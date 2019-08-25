@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.Serialization;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 
 namespace Tree.Models
 {
@@ -25,10 +27,28 @@ namespace Tree.Models
             _nodesCollections = _database.GetCollection<NodeEntity>(NODES_COLLECTION_NAME);
         }
 
-        public TreeDto[] GetAllTrees()
+        public long CountTrees()
         {
-            return _treesCollections.Find(_ => true).ToEnumerable()
-                .Select(e => e.ToDto()).ToArray();
+            return _treesCollections.Find(_ => true).CountDocuments();
+        }
+
+        public PaginationDto<TreeDto> GetTrees(long page, long pageSize, string sort, Contracts.SortDirection sortDir)
+        {
+            var pipeline = GetPaginatedTreesAggregation(page, pageSize, sort, sortDir);
+            var result = _treesCollections.Aggregate<BsonDocument>(pipeline).ToList();
+
+            var count = result[0]["total"][0]["count"].ToInt32();
+            var trees = result[0]["results"].AsBsonArray
+                .Select(b => BsonSerializer.Deserialize<TreeEntity>(b.AsBsonDocument).ToDto())
+                .ToArray();
+
+            return new PaginationDto<TreeDto>(
+                page: page,
+                pageSize: pageSize,
+                sort: sort,
+                sortDir: sortDir.ToString().ToLower(),
+                count: count,
+                items: trees);
         }
 
         public TreeDto GetTree(Guid guid)
@@ -149,6 +169,33 @@ namespace Tree.Models
                 updateBuilder.Set(n => n.ParentGuid, parent.Guid));
 
             return entity.ModifiedCount;
+        }
+
+        private BsonDocument[] GetPaginatedTreesAggregation(long page, long pageSize, string sort, Contracts.SortDirection sortDir)
+        {
+            var sortStep = new BsonDocument() { { "$sort", new BsonDocument { { sort, sortDir == Contracts.SortDirection.Asc ? 1 : -1 } } } };
+
+            var resultsFacetStep = new BsonArray(new[]
+            {
+                new BsonDocument() { { "$skip", page * pageSize } },
+                new BsonDocument() { { "$limit", pageSize } },
+            });
+
+            var totalFacetStep = new BsonArray(new[]
+            {
+                new BsonDocument() { { "$count", "count" } },
+            });
+
+            var facetStep = new BsonDocument()
+            {
+                { "$facet", new BsonDocument() {
+                    { "results", resultsFacetStep },
+                    { "total", totalFacetStep }, } }
+            };
+
+            var pipeline = new[] { sortStep, facetStep };
+
+            return pipeline;
         }
     }
 

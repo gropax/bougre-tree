@@ -21,9 +21,11 @@ namespace Tree.Controllers
         }
 
         [HttpGet]
-        public ActionResult Get()
+        public ActionResult Get(long page = 0, long pageSize = 50, string sort = "updatedAt",
+            string sortDir = "desc")
         {
-            var trees = _treeStorage.GetAllTrees();
+            var dir = sortDir == "asc" ? SortDirection.Asc : SortDirection.Desc;
+            var trees = _treeStorage.GetTrees(page, pageSize, sort, dir);
             return Ok(trees);
         }
 
