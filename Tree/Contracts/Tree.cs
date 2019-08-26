@@ -62,7 +62,7 @@ namespace Tree.Contracts
         public string Description { get; set; }
 
         public bool IsEmpty => Name == null && Description == null;
-        public bool IsValid => Name != null && Description != null;
+        public bool IsValid => Name != null;
     }
 
     [DataContract(Namespace = "tree")]
